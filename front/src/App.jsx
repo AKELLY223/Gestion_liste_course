@@ -1,13 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ShoppingList from "./components/ShoppingList";
 import AddItemForm from "./components/AddItemForm";
 
 function App() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => {
+    // Charger les données depuis localStorage
+    const savedItems = localStorage.getItem("shoppingList");
+    return savedItems ? JSON.parse(savedItems) : [];
+  });
+
+  // Sauvegarder les données dans localStorage à chaque changement
+  useEffect(() => {
+    localStorage.setItem("shoppingList", JSON.stringify(items));
+  }, [items]);
 
   // Ajouter un article
   const addItem = (name) => {
-    setItems([...items, { id: Date.now(), name, purchased: false }]);
+    const newItem = {
+      id: Date.now(),
+      name,
+      addedAt: new Date().toISOString(),
+      deletedAt: null,
+      purchased: false,
+    };
+    setItems([...items, newItem]);
   };
 
   // Marquer un article comme acheté
@@ -21,7 +37,11 @@ function App() {
 
   // Supprimer un article
   const deleteItem = (id) => {
-    setItems(items.filter((item) => item.id !== id));
+    setItems(
+      items.map((item) =>
+        item.id === id ? { ...item, deletedAt: new Date().toISOString() } : item
+      )
+    );
   };
 
   return (
